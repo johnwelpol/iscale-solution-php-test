@@ -1,8 +1,9 @@
 <?php
+namespace App\Models;
 
 class Comment
 {
-	protected $id, $body, $createdAt, $newsId;
+	private $id, $body, $createdAt, $newsId;
 
 	public function setId($id)
 	{
@@ -15,6 +16,7 @@ class Comment
 	{
 		return $this->id;
 	}
+
 	public function setBody($body)
 	{
 		$this->body = $body;
