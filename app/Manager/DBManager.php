@@ -1,8 +1,8 @@
 <?php
 namespace App\Manager;
 
-use DBFactory;
 use Exception;
+use App\Factory\DBFactory;
 use App\Database\Contracts\DBInterface;
 use App\Factory\Contracts\DBFactoryInterface;
 use App\Manager\Contracts\DBManagerInterface;
@@ -59,7 +59,20 @@ class DBManager implements DBManagerInterface
 
     public static function getDbConfig(): array {
         if (empty(self::$dbConfig)) {
-            $dbConfig = app()->getConfig('db');
+            $dbConfig = [
+                'default' => env('DB_CONNECTION', 'mysql'),
+                
+                'connections' => [
+                    'mysql' => [
+                        'driver' => 'mysql',
+                        'host' => env('DB_HOST', '127.0.0.1'),
+                        'port' => env('DB_PORT', '3306'),
+                        'database' => env('DB_DATABASE', 'forge'),
+                        'username' => env('DB_USERNAME', 'forge'),
+                        'password' => env('DB_PASSWORD', ''),
+                    ],
+                ]
+            ];
             if (empty($dbConfig)) {
                 throw new Exception("No database configuration found.");
             } else {

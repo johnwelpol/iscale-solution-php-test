@@ -1,8 +1,10 @@
 <?php
+namespace App\Factory;
 
+use Exception;
+use App\Manager\DB;
 use App\Database\Contracts\DBInterface;
 use App\Factory\Contracts\DBFactoryInterface;
-use App\Manager\DB;
 
 class DBFactory implements DBFactoryInterface {
 
