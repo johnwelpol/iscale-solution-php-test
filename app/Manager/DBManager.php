@@ -1,45 +1,71 @@
 <?php
 namespace App\Manager;
 
-use PDO;
+use DBFactory;
+use Exception;
+use App\Database\Contracts\DBInterface;
+use App\Factory\Contracts\DBFactoryInterface;
+use App\Manager\Contracts\DBManagerInterface;
 
-class DBManager
+class DBManager implements DBManagerInterface
 {
-	private PDO $pdo;
-
 	private static $instance = null;
 
-	private function __construct()
-	{
-		$dsn = 'mysql:dbname=phptest;host=127.0.0.1';
-		$user = 'root';
-		$password = 'pass';
+    private static array $dbConfig = [];
 
-		$this->pdo = new PDO($dsn, $user, $password);
+    private array $factories = [];
+
+    private array $connections = [];
+
+    private array $resolved = [];
+
+	public function __construct()
+	{
+        $this->init();
+        self::$instance = $this;
 	}
 
 	public static function getInstance()
 	{
-		if (null === self::$instance) {
-			$c = __CLASS__;
-			self::$instance = new $c;
-		}
 		return self::$instance;
 	}
 
-	public function select($sql)
-	{
-		$sth = $this->pdo->query($sql);
-		return $sth->fetchAll();
-	}
+    private function init() {
+        $this->connections = array_keys(self::getDbConfig());
+        foreach ($this->connections as $connection) {
+            $this->factories[$connection] = DBFactory::new($connection);
+        }
+    }
 
-	public function exec($sql)
-	{
-		return $this->pdo->exec($sql);
-	}
+    public function connection(string $connection): DBInterface {
+        if (!in_array($connection, $this->connections)) {
+            throw new Exception("DB Manager: Undefined connection given");
+        }
+        if (isset($this->resolved[$connection])) {
+            return $this->resolved[$connection];
+        }
 
-	public function lastInsertId()
-	{
-		return $this->pdo->lastInsertId();
-	}
+        $this->resolved[$connection] = $this->resolveConnection($connection)->make();
+        return $this->resolved[$connection];
+    }
+
+    private function resolveConnection(string $connection): DBFactoryInterface {
+        if (!$this->factories[$connection] instanceof DBFactoryInterface) {
+            throw new Exception("DB Manager: Invalid instance of DBFactory");
+        }
+
+        return $this->factories[$connection]->make();
+    }
+
+    public static function getDbConfig(): array {
+        if (empty(self::$dbConfig)) {
+            $dbConfig = app()->getConfig('db');
+            if (empty($dbConfig)) {
+                throw new Exception("No database configuration found.");
+            } else {
+                self::$dbConfig = $dbConfig;
+            }
+        }
+        return self::$dbConfig;
+    }
 }
