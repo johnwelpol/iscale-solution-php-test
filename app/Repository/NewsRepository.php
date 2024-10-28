@@ -1,13 +1,15 @@
 <?php
 
-class NewsManager
+use App\Repository\CommentRepository;
+
+class NewsRepository
 {
 	private static $instance = null;
 
 	private function __construct()
 	{
 		require_once(ROOT . '/utils/DB.php');
-		require_once(ROOT . '/utils/CommentManager.php');
+		require_once(ROOT . '/utils/CommentRepository.php');
 		require_once(ROOT . '/class/News.php');
 	}
 
@@ -56,7 +58,7 @@ class NewsManager
 	*/
 	public function deleteNews($id)
 	{
-		$comments = CommentManager::getInstance()->listComments();
+		$comments = CommentRepository::getInstance()->listComments();
 		$idsToDelete = [];
 
 		foreach ($comments as $comment) {
@@ -66,7 +68,7 @@ class NewsManager
 		}
 
 		foreach($idsToDelete as $id) {
-			CommentManager::getInstance()->deleteComment($id);
+			CommentRepository::getInstance()->deleteComment($id);
 		}
 
 		$db = DB::getInstance();
