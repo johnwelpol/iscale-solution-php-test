@@ -9,7 +9,7 @@ use App\Manager\Contracts\DBManagerInterface;
 
 class DBManager implements DBManagerInterface
 {
-	private static $instance = null;
+	private static DBManager|null $instance = null;
 
     private static array $dbConfig = [];
 
@@ -27,11 +27,14 @@ class DBManager implements DBManagerInterface
 
 	public static function getInstance()
 	{
+        if (is_null(self::$instance)) {
+			self::$instance = new static;
+		}
 		return self::$instance;
 	}
 
     private function init() {
-        $this->connections = array_keys(self::getDbConfig());
+        $this->connections = array_keys(self::getDbConfig()['connections']);
         foreach ($this->connections as $connection) {
             $this->factories[$connection] = DBFactory::new($connection);
         }
@@ -45,11 +48,11 @@ class DBManager implements DBManagerInterface
             return $this->resolved[$connection];
         }
 
-        $this->resolved[$connection] = $this->resolveConnection($connection)->make();
+        $this->resolved[$connection] = $this->resolveConnection($connection);
         return $this->resolved[$connection];
     }
 
-    private function resolveConnection(string $connection): DBFactoryInterface {
+    private function resolveConnection(string $connection): DBInterface {
         if (!$this->factories[$connection] instanceof DBFactoryInterface) {
             throw new Exception("DB Manager: Invalid instance of DBFactory");
         }
@@ -59,20 +62,7 @@ class DBManager implements DBManagerInterface
 
     public static function getDbConfig(): array {
         if (empty(self::$dbConfig)) {
-            $dbConfig = [
-                'default' => env('DB_CONNECTION', 'mysql'),
-                
-                'connections' => [
-                    'mysql' => [
-                        'driver' => 'mysql',
-                        'host' => env('DB_HOST', '127.0.0.1'),
-                        'port' => env('DB_PORT', '3306'),
-                        'database' => env('DB_DATABASE', 'forge'),
-                        'username' => env('DB_USERNAME', 'forge'),
-                        'password' => env('DB_PASSWORD', ''),
-                    ],
-                ]
-            ];
+            $dbConfig = ConfigManager::getInstance()->getAllConfigs()['db'];
             if (empty($dbConfig)) {
                 throw new Exception("No database configuration found.");
             } else {
@@ -80,5 +70,9 @@ class DBManager implements DBManagerInterface
             }
         }
         return self::$dbConfig;
+    }
+
+    public function getDefaultConnection(): string {
+        return self::getDbConfig()['default'] ?? 'mysql';
     }
 }

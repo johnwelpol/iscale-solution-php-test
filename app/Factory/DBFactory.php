@@ -2,7 +2,8 @@
 namespace App\Factory;
 
 use Exception;
-use App\Manager\DB;
+use App\Database\DB;
+use App\Manager\ConfigManager;
 use App\Database\Contracts\DBInterface;
 use App\Factory\Contracts\DBFactoryInterface;
 
@@ -44,10 +45,10 @@ class DBFactory implements DBFactoryInterface {
     }
 
     private function initConnectionConfig() {
-        if (empty(self::getDbConfig()[$this->connection])) {
+        if (empty(self::getDbConfig()['connections'][$this->connection])) {
             throw new Exception("DB Factory error: No database connection configuration found.");
         }
-        $this->connectionConfig = self::getDbConfig()[$this->connection];
+        $this->connectionConfig = self::getDbConfig()['connections'][$this->connection];
         $this->validateConfig($this->connectionConfig);
     }
     
@@ -68,7 +69,7 @@ class DBFactory implements DBFactoryInterface {
 
     public static function getDbConfig(): array {
         if (empty(self::$dbConfig)) {
-            $dbConfig = app()->getConfig('db');
+            $dbConfig = ConfigManager::getInstance()->getConfig('db');
             if (empty($dbConfig)) {
                 throw new Exception("No database configuration found.");
             } else {

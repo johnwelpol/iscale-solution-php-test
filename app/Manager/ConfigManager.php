@@ -7,12 +7,22 @@ use App\Manager\Contracts\ConfigManagerInterface;
 
 class ConfigManager implements ConfigManagerInterface {
 
+    private static ConfigManager|null $instance = null;
+
     protected $configs = [];
 
     public function __construct(string $configFolder = 'config')
     {
         $this->loadConfigs($configFolder);
     }
+
+    public static function getInstance()
+	{
+        if (is_null(self::$instance)) {
+			self::$instance = new static;
+		}
+		return self::$instance;
+	}
 
     protected function loadConfigs(string $folder): void
     {
@@ -28,10 +38,9 @@ class ConfigManager implements ConfigManagerInterface {
 
     public function getConfig(string $key): mixed
     {
-        foreach ($this->configs as $configName => $config) {
-            if (isset($config[$key])) {
-                return $config[$key];
-            }
+        // TODO: Maybe add dot notation access?
+        if (isset($this->configs[$key])) {
+            return $this->configs[$key];
         }
         return null;
     }
