@@ -1,5 +1,5 @@
 <?php
-namespace App\Manager;
+namespace App\Database;
 
 use App\Database\Contracts\DBInterface;
 use PDO;
