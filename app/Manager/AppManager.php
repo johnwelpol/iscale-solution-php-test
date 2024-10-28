@@ -8,16 +8,15 @@ use App\Manager\Contracts\ConfigManagerInterface;
 
 class AppManager implements AppManagerInterface {
 
-    private AppManager|null $instance = null;
+    private static AppManager|null $instance = null;
 
     private DBManagerInterface $dbManager;
-
 
     private ConfigManagerInterface $config;
 
     public function __construct()
     {
-        
+        $this->boot();    
     }
     
 	public static function getInstance()
@@ -38,7 +37,7 @@ class AppManager implements AppManagerInterface {
         return $this;
     }
 
-    public function boot(): self {
+    private function boot(): self {
         $dotenv = Dotenv::createImmutable(BASE_DIR);
         $dotenv->load();
         return $this;
