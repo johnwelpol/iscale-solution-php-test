@@ -2,6 +2,7 @@
 namespace App\Repository;
 
 use App\Models\Comment;
+use App\Manager\DBManager;
 
 class CommentRepository
 {
@@ -14,15 +15,14 @@ class CommentRepository
 	public static function getInstance()
 	{
 		if (null === self::$instance) {
-			$c = __CLASS__;
-			self::$instance = new $c;
+			self::$instance = new self;
 		}
 		return self::$instance;
 	}
 
 	public function listComments()
 	{
-		$db = DB::getInstance();
+		$db = DBManager::getInstance();
 		$rows = $db->select('SELECT * FROM `comment`');
 
 		$comments = [];
@@ -39,7 +39,7 @@ class CommentRepository
 
 	public function addCommentForNews($body, $newsId)
 	{
-		$db = DB::getInstance();
+		$db = DBManager::getInstance();
 		$sql = "INSERT INTO `comment` (`body`, `created_at`, `news_id`) VALUES('". $body . "','" . date('Y-m-d') . "','" . $newsId . "')";
 		$db->exec($sql);
 		return $db->lastInsertId($sql);
@@ -47,7 +47,7 @@ class CommentRepository
 
 	public function deleteComment($id)
 	{
-		$db = DB::getInstance();
+		$db = DBManager::getInstance();
 		$sql = "DELETE FROM `comment` WHERE `id`=" . $id;
 		return $db->exec($sql);
 	}

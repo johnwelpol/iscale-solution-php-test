@@ -1,17 +1,14 @@
 <?php
+namespace App\Repository;
 
+use App\Models\News;
+use App\Manager\DBManager;
 use App\Repository\CommentRepository;
 
 class NewsRepository
 {
 	private static $instance = null;
 
-	private function __construct()
-	{
-		require_once(ROOT . '/utils/DB.php');
-		require_once(ROOT . '/utils/CommentRepository.php');
-		require_once(ROOT . '/class/News.php');
-	}
 
 	public static function getInstance()
 	{
@@ -27,7 +24,7 @@ class NewsRepository
 	*/
 	public function listNews()
 	{
-		$db = DB::getInstance();
+		$db = DBManager::getInstance();
 		$rows = $db->select('SELECT * FROM `news`');
 
 		$news = [];
@@ -47,7 +44,7 @@ class NewsRepository
 	*/
 	public function addNews($title, $body)
 	{
-		$db = DB::getInstance();
+		$db = DBManager::getInstance();
 		$sql = "INSERT INTO `news` (`title`, `body`, `created_at`) VALUES('". $title . "','" . $body . "','" . date('Y-m-d') . "')";
 		$db->exec($sql);
 		return $db->lastInsertId($sql);
@@ -71,7 +68,7 @@ class NewsRepository
 			CommentRepository::getInstance()->deleteComment($id);
 		}
 
-		$db = DB::getInstance();
+		$db = DBManager::getInstance();
 		$sql = "DELETE FROM `news` WHERE `id`=" . $id;
 		return $db->exec($sql);
 	}
