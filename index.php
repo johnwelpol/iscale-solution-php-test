@@ -1,8 +1,7 @@
 <?php
 
 define('ROOT', __DIR__);
-require_once(ROOT . '/utils/NewsManager.php');
-require_once(ROOT . '/utils/CommentManager.php');
+include 'autoloader.php';
 
 foreach (NewsManager::getInstance()->listNews() as $news) {
 	echo("############ NEWS " . $news->getTitle() . " ############\n");

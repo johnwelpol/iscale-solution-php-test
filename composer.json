@@ -1,0 +1,16 @@
+{
+    "name": "johnwel/php_test_optimy",
+    "description": "PHP test optimization",
+    "authors": [
+        {
+            "name": "Johnwel",
+            "email": "johnwellibariospol@gmail.com"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    }
+}
