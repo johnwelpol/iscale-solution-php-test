@@ -1,8 +1,10 @@
 <?php
 
-class DB
+use PDO;
+
+class DBManager
 {
-	private $pdo;
+	private PDO $pdo;
 
 	private static $instance = null;
 
@@ -12,7 +14,7 @@ class DB
 		$user = 'root';
 		$password = 'pass';
 
-		$this->pdo = new \PDO($dsn, $user, $password);
+		$this->pdo = new PDO($dsn, $user, $password);
 	}
 
 	public static function getInstance()
