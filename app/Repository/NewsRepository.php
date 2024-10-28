@@ -5,16 +5,15 @@ use App\Models\News;
 use App\Manager\DBManager;
 use App\Repository\CommentRepository;
 
-class NewsRepository
+class NewsRepository extends BaseRepository
 {
 	private static $instance = null;
 
 
 	public static function getInstance()
 	{
-		if (null === self::$instance) {
-			$c = __CLASS__;
-			self::$instance = new $c;
+		if (is_null(self::$instance)) {
+			self::$instance = new self;
 		}
 		return self::$instance;
 	}
@@ -24,8 +23,7 @@ class NewsRepository
 	*/
 	public function listNews()
 	{
-		$db = DBManager::getInstance();
-		$rows = $db->select('SELECT * FROM `news`');
+		$rows = $this->db->select('SELECT * FROM `news`');
 
 		$news = [];
 		foreach($rows as $row) {
@@ -44,10 +42,9 @@ class NewsRepository
 	*/
 	public function addNews($title, $body)
 	{
-		$db = DBManager::getInstance();
 		$sql = "INSERT INTO `news` (`title`, `body`, `created_at`) VALUES('". $title . "','" . $body . "','" . date('Y-m-d') . "')";
-		$db->exec($sql);
-		return $db->lastInsertId($sql);
+		$this->db->exec($sql);
+		return $this->db->lastInsertId($sql);
 	}
 
 	/**
@@ -68,8 +65,7 @@ class NewsRepository
 			CommentRepository::getInstance()->deleteComment($id);
 		}
 
-		$db = DBManager::getInstance();
 		$sql = "DELETE FROM `news` WHERE `id`=" . $id;
-		return $db->exec($sql);
+		return $this->db->exec($sql);
 	}
 }
