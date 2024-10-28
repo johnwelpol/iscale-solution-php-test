@@ -1,10 +1,21 @@
 <?php
 
+require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/app/helpers.php';
+
+define('BASE_DIR', __DIR__);
+use App\Manager\AppManager;
+use App\Manager\ConfigManager;
+use App\Manager\DBManager;
 use App\Repository\NewsRepository;
 use App\Repository\CommentRepository;
 
-define('ROOT', __DIR__);
-include 'autoloader.php';
+$config = new ConfigManager();
+$dbManager = new DBManager();
+$app = AppManager::getInstance();
+$app->setConfigInstance($config)
+	->setDBManagerInstance($dbManager)
+	->boot();
 
 foreach (NewsRepository::getInstance()->listNews() as $news) {
 	echo("############ NEWS " . $news->getTitle() . " ############\n");
@@ -15,6 +26,3 @@ foreach (NewsRepository::getInstance()->listNews() as $news) {
 		}
 	}
 }
-
-$commentRepository = CommentRepository::getInstance();
-$c = $commentRepository->listComments();
