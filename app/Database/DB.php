@@ -2,6 +2,7 @@
 namespace App\Database;
 
 use App\Database\Contracts\DBInterface;
+use App\Database\Contracts\QueryBuilderInterface;
 use PDO;
 
 class DB implements DBInterface
@@ -18,20 +19,9 @@ class DB implements DBInterface
 		return new self($dsn, $user, $password);
 	}
 
-	public function select(string $sql)
+	public function query(): QueryBuilderInterface
 	{
-		$statement = $this->connection->query($sql);
-		return $statement->fetchAll();
-	}
-
-	public function exec(string $sql)
-	{
-		return $this->connection->exec($sql);
-	}
-
-	public function lastInsertId()
-	{
-		return $this->connection->lastInsertId();
+		return new QueryBuilder($this->connection);
 	}
 
 	public static function availableDrivers(): array
