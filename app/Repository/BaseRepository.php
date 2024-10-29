@@ -10,7 +10,7 @@ abstract class BaseRepository {
     {   
         $this->connection(app()->getDBManager()->getDefaultConnection());
     }
-
+    
     public function connection(string $connection) {
         $this->db = app()->getDBManager()->connection($connection);
     }

@@ -1,14 +1,18 @@
 <?php
 namespace App\Models;
 
-class Comment
+use App\Models\Contracts\ModelInterface;
+
+class Comment implements ModelInterface
 {
-	private $id, $body, $createdAt, $newsId;
+	private int $id; 
+	private string $body;
+	private string $createdAt;
+	private int $newsId;
 
 	public function setId($id)
 	{
 		$this->id = $id;
-
 		return $this;
 	}
 
@@ -51,5 +55,13 @@ class Comment
 		$this->newsId = $newsId;
 
 		return $this;
+	}
+
+	public static function fromArray(array $entity): Comment {
+		$comment = new Comment();
+		return $comment->setId($entity['id'])
+			->setBody($entity['body'])
+			->setCreatedAt($entity['created_at'])
+			->setNewsId($entity['news_id']);
 	}
 }

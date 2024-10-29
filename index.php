@@ -8,7 +8,7 @@ use App\Manager\DBManager;
 use App\Manager\AppManager;
 use App\Manager\ConfigManager;
 use App\Repository\NewsRepository;
-use App\Repository\CommentRepository;
+use App\Repository\NewsCommentsRepository;
 
 $config = ConfigManager::getInstance();
 $dbManager = DBManager::getInstance();
@@ -16,12 +16,11 @@ $app = AppManager::getInstance()
 	->setConfigInstance($config)
 	->setDBManagerInstance($dbManager);
 
-foreach (NewsRepository::getInstance()->listNews() as $news) {
+foreach (NewsRepository::getInstance()->get() as $news) {
 	echo("############ NEWS " . $news->getTitle() . " ############\n");
 	echo($news->getBody() . "\n");
-	foreach (CommentRepository::getInstance()->listComments() as $comment) {
-		if ($comment->getNewsId() == $news->getId()) {
-			echo("Comment " . $comment->getId() . " : " . $comment->getBody() . "\n");
-		}
+	$comments = NewsCommentsRepository::getInstance()->find($news->getId());
+	foreach ($comments as $comment) {
+		echo("Comment " . $comment->getId() . " : " . $comment->getBody() . "\n");
 	}
 }

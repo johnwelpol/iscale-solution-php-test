@@ -1,9 +1,14 @@
 <?php
 namespace App\Models;
 
-class News
+use App\Models\Contracts\ModelInterface;
+
+class News implements ModelInterface
 {
-	protected $id, $title, $body, $createdAt;
+	private int $id;
+	private string $title;
+	private string $body;
+	private string $createdAt;
 
 	public function setId($id)
 	{
@@ -51,5 +56,14 @@ class News
 	public function getCreatedAt()
 	{
 		return $this->createdAt;
+	}
+
+	public static function fromArray(array $entity): News {
+		$news = new News();
+		$news->setId($entity['id'])
+		  ->setTitle($entity['title'])
+		  ->setBody($entity['body'])
+		  ->setCreatedAt($entity['created_at']);
+		return $news;
 	}
 }

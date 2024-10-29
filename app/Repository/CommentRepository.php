@@ -1,17 +1,17 @@
 <?php
 namespace App\Repository;
 
+use Exception;
 use App\Models\Comment;
 use App\Manager\DBManager;
 use App\Repository\BaseRepository;
+use App\Repository\Contracts\CreateRepositoryInterface;
+use App\Repository\Contracts\DeleteRepositoryInterface;
+use App\Repository\Contracts\ReadRepositoryInterface;
 
-class CommentRepository extends BaseRepository
+class CommentRepository extends BaseRepository implements ReadRepositoryInterface, CreateRepositoryInterface, DeleteRepositoryInterface
 {
 	private static $instance = null;
-
-	private function __construct()
-	{
-	}
 
 	public static function getInstance()
 	{
@@ -20,33 +20,60 @@ class CommentRepository extends BaseRepository
 		}
 		return self::$instance;
 	}
-
-	public function listComments()
+	
+	public function get(): array
 	{
-		$rows = $this->db->select('SELECT * FROM `comment`');
+		$rows = $this->db
+			->query()
+			->setQuery('SELECT * FROM `comment`')
+			->get();
 
 		$comments = [];
 		foreach($rows as $row) {
-			$n = new Comment();
-			$comments[] = $n->setId($row['id'])
-			  ->setBody($row['body'])
-			  ->setCreatedAt($row['created_at'])
-			  ->setNewsId($row['news_id']);
+			$comments[] = Comment::fromArray($row);
 		}
 
 		return $comments;
 	}
 
-	public function addCommentForNews($body, $newsId)
+	public function create($comment)
 	{
-		$sql = "INSERT INTO `comment` (`body`, `created_at`, `news_id`) VALUES('". $body . "','" . date('Y-m-d') . "','" . $newsId . "')";
-		$this->db->exec($sql);
-		return $this->db->lastInsertId($sql);
+		$sql = "INSERT INTO `comment` (`body`, `news_id`, `created_at`) VALUES('?','?','?')";
+		$query = $this->db
+			->query()
+			->setQuery($sql)
+			->setBindParams([
+				$comment->getBody(),
+				$comment->getNewsId(),
+				date('Y-m-d'),
+			])
+			->exec();
+		$insertedID = $query->lastInsertId();
+		if (is_null($insertedID)) {
+			throw new Exception("Failed to create a news");
+		}
+
+		return $this->find($insertedID);
 	}
 
-	public function deleteComment($id)
+	public function find(string $id)
 	{
-		$sql = "DELETE FROM `comment` WHERE `id`=" . $id;
-		return $this->db->exec($sql);
+		$row = $this->db
+			->query()
+			->setQuery('SELECT * FROM `comment` WHERE id = ?')
+			->setBindParams([$id])
+			->first();
+
+		return Comment::fromArray($row);
+	}
+
+	public function delete(string $id)
+	{
+		$sql = "DELETE FROM `comment` WHERE `id`= ?";
+		return $this->db
+			->query()
+			->setQuery($sql)
+			->setBindParams([$id])
+			->exec();
 	}
 }

@@ -1,14 +1,15 @@
 <?php
 namespace App\Repository;
 
+use Exception;
 use App\Models\News;
-use App\Manager\DBManager;
-use App\Repository\CommentRepository;
+use App\Repository\Contracts\ReadRepositoryInterface;
+use App\Repository\Contracts\CreateRepositoryInterface;
+use App\Repository\Contracts\DeleteRepositoryInterface;
 
-class NewsRepository extends BaseRepository
+class NewsRepository extends BaseRepository implements ReadRepositoryInterface, CreateRepositoryInterface, DeleteRepositoryInterface
 {
 	private static $instance = null;
-
 
 	public static function getInstance()
 	{
@@ -17,55 +18,69 @@ class NewsRepository extends BaseRepository
 		}
 		return self::$instance;
 	}
-
 	/**
 	* list all news
+	* @return array<News>
 	*/
-	public function listNews()
+	public function get(): array
 	{
-		$rows = $this->db->select('SELECT * FROM `news`');
+		$rows = $this->db
+			->query()
+			->setQuery('SELECT * FROM `news`')
+			->get();
 
 		$news = [];
 		foreach($rows as $row) {
-			$n = new News();
-			$news[] = $n->setId($row['id'])
-			  ->setTitle($row['title'])
-			  ->setBody($row['body'])
-			  ->setCreatedAt($row['created_at']);
+			$news[] = News::fromArray($row);
 		}
 
 		return $news;
 	}
 
+	public function find(string $id)
+	{
+		$row = $this->db
+			->query()
+			->setQuery('SELECT * FROM `news` WHERE id = ?')
+			->setBindParams([$id])
+			->first();
+
+		return News::fromArray($row);
+	}
+
 	/**
 	* add a record in news table
 	*/
-	public function addNews($title, $body)
+	public function create($news)
 	{
-		$sql = "INSERT INTO `news` (`title`, `body`, `created_at`) VALUES('". $title . "','" . $body . "','" . date('Y-m-d') . "')";
-		$this->db->exec($sql);
-		return $this->db->lastInsertId($sql);
+		$query = $this->db
+			->query()
+			->setQuery("INSERT INTO `news` (`title`, `body`, `created_at`) VALUES('?','?','?')")
+			->setBindParams([
+				$news->getTitle(), 
+				$news->getBody(), 
+				date('Y-m-d'),
+			])
+			->exec();
+		$insertedID = $query->lastInsertId();
+		if (is_null($insertedID)) {
+			throw new Exception("Failed to create a news");
+		}
+
+		return $this->find($insertedID);
 	}
 
 	/**
 	* deletes a news, and also linked comments
 	*/
-	public function deleteNews($id)
+	public function delete(string $id): void
 	{
-		$comments = CommentRepository::getInstance()->listComments();
-		$idsToDelete = [];
-
-		foreach ($comments as $comment) {
-			if ($comment->getNewsId() == $id) {
-				$idsToDelete[] = $comment->getId();
-			}
-		}
-
-		foreach($idsToDelete as $id) {
-			CommentRepository::getInstance()->deleteComment($id);
-		}
-
-		$sql = "DELETE FROM `news` WHERE `id`=" . $id;
-		return $this->db->exec($sql);
+		NewsCommentsRepository::getInstance()->delete($id);
+		$query = $this->db
+			->query()
+			->setQuery("DELETE FROM `news` WHERE `id`= ?")
+			->setBindParams([
+				$id,
+			]);
 	}
 }
