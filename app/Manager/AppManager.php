@@ -13,11 +13,6 @@ class AppManager implements AppManagerInterface {
     private DBManagerInterface $dbManager;
 
     private ConfigManagerInterface $config;
-
-    public function __construct()
-    {
-        $this->boot();    
-    }
     
 	public static function getInstance()
 	{
@@ -34,12 +29,6 @@ class AppManager implements AppManagerInterface {
 
     public function setDBManagerInstance(DBManagerInterface $dbManager): self {
         $this->dbManager = $dbManager;
-        return $this;
-    }
-
-    private function boot(): self {
-        $dotenv = Dotenv::createImmutable(BASE_DIR);
-        $dotenv->load();
         return $this;
     }
 
